@@ -118,7 +118,7 @@ function App() {
     } finally {
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = '/';
+      window.location.href = 'https://fivavix.github.io/agenda-kike/';
     }
   }
 

@@ -67,6 +67,11 @@ export function useMobileBack(isOpen, onBack) {
       if (!isHandlingPopRef.current) {
         ignoreNextPop = true;
         window.history.back();
+        // Fallback: Si el navegador optimiza la llamada history.back() y nunca dispara el evento popstate, 
+        // liberamos el candado para que el botón volver no quede inhabilitado permanentemente.
+        setTimeout(() => {
+          ignoreNextPop = false;
+        }, 150);
       }
       
       isHandlingPopRef.current = false;
