@@ -40,9 +40,9 @@ export function useMobileBack(isOpen, onBack) {
   useEffect(() => {
     if (!isOpen) return;
 
-    // Cuando se abre la subvista, metemos un historial garantizando que el navegador lo registre (usando un hash estático temporal)
-    const hashId = `#internal-${Date.now()}`;
-    window.history.pushState({ appInternal: true }, '', window.location.pathname + window.location.search + hashId);
+    // Cuando se abre la subvista, metemos un historial con un hash único que el navegador siempre registre
+    const hashId = `#v-${Date.now()}`;
+    window.history.pushState({ appInternal: true }, '', hashId);
 
     const handlerObj = {
       callback: () => {

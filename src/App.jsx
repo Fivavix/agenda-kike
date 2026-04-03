@@ -118,7 +118,9 @@ function App() {
     } finally {
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = 'https://fivavix.github.io/agenda-kike/';
+      // Redirigir a la URL del proyecto usando la base de Vite
+      const basePath = import.meta.env.BASE_URL || '/agenda-kike/';
+      window.location.replace(window.location.origin + basePath);
     }
   }
 
@@ -127,7 +129,7 @@ function App() {
       <div className="loader"></div>
       <p>Cargando Sistema...</p>
       {/* Si tarda mucho, mostrar un botón para reintentar */}
-      <button onClick={() => window.location.reload()} style={{ marginTop: '20px', background: 'transparent', border: '1px solid var(--gold-accent)', color: 'var(--gold-accent)', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer' }}>Reintentar</button>
+      <button onClick={() => window.location.reload()} className="btn" style={{ background: '#111', color: 'var(--gold-accent)', padding: '10px', width: '100%', borderRadius: '12px', fontSize: '0.9rem' }}>Actualizar Sistema ahora</button>
     </div>;
   }
 

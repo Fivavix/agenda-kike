@@ -7,7 +7,9 @@ export default function AppUpdater() {
     let currentScripts = '';
     const checkUpdate = async () => {
       try {
-        const res = await fetch('/?t=' + new Date().getTime());
+        // Usar BASE_URL para asegurar que buscamos actualizaciones en el proyecto correcto, evitando falsos positivos del dominio raíz
+        const basePath = import.meta.env.BASE_URL || '/agenda-kike/';
+        const res = await fetch(basePath + 'index.html?t=' + new Date().getTime());
         const html = await res.text();
         // Extract script sources to avoid false positives with other small dynamic elements
         const scriptsMatch = html.match(/<script.+?src="(.+?)".*?>/g)?.join('') || html;
@@ -32,7 +34,7 @@ export default function AppUpdater() {
   return (
     <div className="animate-fade-in" style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.95), rgba(180, 148, 42, 0.95))', padding: '16px 20px', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', border: '1px solid var(--gold-light)' }}>
       <p style={{ color: '#111', fontWeight: 'bold', margin: 0, textTransform: 'uppercase', fontSize: '0.85rem' }}>Hay una nueva versión disponible</p>
-      <button onClick={() => window.location.reload(true)} className="btn" style={{ background: '#111', color: 'var(--gold-accent)', padding: '10px', width: '100%', borderRadius: '12px', fontSize: '0.9rem' }}>Actualizar Sistema</button>
+      <button onClick={() => window.location.reload()} className="btn" style={{ background: '#111', color: 'var(--gold-accent)', padding: '10px', width: '100%', borderRadius: '12px', fontSize: '0.9rem' }}>Actualizar Sistema ahora</button>
     </div>
   );
 }
