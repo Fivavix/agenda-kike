@@ -27,6 +27,7 @@ function App() {
       try {
         if (session?.user) {
           await fetchRole(session.user.id);
+          if (isMounted) clearTimeout(timeout);
         } else {
           if (isMounted) {
             setUser(null);
@@ -37,7 +38,6 @@ function App() {
       } catch (err) {
         if (isMounted) {
           console.error("Fallo de conexión o perfil incompleto:", err);
-          // If there's a profile issue, just log them out to clean state instead of showing vague errors
           await supabase.auth.signOut();
           setUser(null);
           setLoading(false);
