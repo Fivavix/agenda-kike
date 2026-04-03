@@ -140,7 +140,7 @@ function MaestroHome({ onLogout }) {
           </h3>
         
         {/* Velada Card */}
-        <div onClick={() => navigate('/maestro/velada')} style={{ 
+        <div onClick={() => navigate('velada')} style={{ 
           cursor: 'pointer', 
           padding: '28px', 
           borderRadius: '24px',
@@ -187,7 +187,7 @@ function MaestroHome({ onLogout }) {
         </div>
 
         {/* TikTok Card */}
-        <div onClick={() => navigate('/maestro/tiktok')} style={{ 
+        <div onClick={() => navigate('tiktok')} style={{ 
           cursor: 'pointer', 
           padding: '28px', 
           borderRadius: '24px',
@@ -234,7 +234,7 @@ function MaestroHome({ onLogout }) {
         </div>
 
         {/* Reportes Card */}
-        <div onClick={() => navigate('/maestro/reportes')} style={{ 
+        <div onClick={() => navigate('reportes')} style={{ 
           cursor: 'pointer', 
           padding: '28px', 
           borderRadius: '24px',

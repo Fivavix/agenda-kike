@@ -21,8 +21,9 @@ function Login() {
         setErrorMsg('Por favor ingresa tu correo');
         return;
       }
+      const basePath = import.meta.env.BASE_URL || '/agenda-kike/';
       const { error } = await supabase.auth.resetPasswordForEmail(username, {
-        redirectTo: window.location.origin,
+        redirectTo: window.location.origin + (basePath.startsWith('/') ? '' : '/') + basePath,
       });
       if (error) {
         setErrorMsg('Error al enviar correo de recuperación: ' + error.message);

@@ -18,11 +18,11 @@ function App() {
     
     const timeout = setTimeout(() => {
       if (isMounted && loading) {
-        console.warn("Loading timeout reached. Forcing stop loading.");
-        setLoading(false);
-        setErrorMsg("El servidor de Supabase tarda demasiado. Verifica tu conexión.");
+        console.warn("Loading timeout reached. Continuing to wait in background...");
+        // No ponemos errorMsg aquí para no frustrar al usuario si es solo lentitud de red.
+        // Solo indicamos en consola y dejamos que el loader siga.
       }
-    }, 10000);
+    }, 20000); // Aumentamos a 20s solo como aviso de log
 
     const checkUser = async (session) => {
       try {
@@ -119,9 +119,9 @@ function App() {
     } finally {
       localStorage.clear();
       sessionStorage.clear();
-      // Redirigir a la URL del proyecto usando la base de Vite
+      // Redirigir a la URL del proyecto usando la base de Vite de forma absoluta para evitar saltos al dominio raíz
       const basePath = import.meta.env.BASE_URL || '/agenda-kike/';
-      window.location.replace(window.location.origin + basePath);
+      window.location.href = window.location.origin + (basePath.startsWith('/') ? '' : '/') + basePath;
     }
   }
 
@@ -150,10 +150,11 @@ function App() {
           <Route path="*" element={<Login />} />
         ) : (
           <>
-            <Route path="/" element={<Navigate to={`/${user}`} replace />} />
+            {/* Volvemos a replace={true} para evitar bucles de navegación infinita al pulsar atrás en la raíz */}
+            <Route path="/" element={<Navigate to={`/${user}`} replace={true} />} />
             {user === 'maestro' && <Route path="/maestro/*" element={<MaestroDashboard onLogout={handleLogout} />} />}
             {user === 'secretaria' && <Route path="/secretaria/*" element={<SecretariaDashboard onLogout={handleLogout} />} />}
-            <Route path="*" element={<Navigate to={`/${user}`} replace />} />
+            <Route path="*" element={<Navigate to={`/${user}`} replace={true} />} />
           </>
         )}
       </Routes>
