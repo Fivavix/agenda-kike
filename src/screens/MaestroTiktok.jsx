@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatPeruDate, getLast7DaysPeru, getPeruDateString } from '../utils/dateFormatter';
 import { fetchTiktokTickets, completeTicketStatus, fetchClientHistory, subscribeToTickets } from '../services/api';
+import { useMobileBack } from '../hooks/useMobileBack';
 
 function MaestroTiktok({ onBack }) {
   const [viewCompleted, setViewCompleted] = useState(false);
@@ -9,6 +10,9 @@ function MaestroTiktok({ onBack }) {
   const [historyClientId, setHistoryClientId] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useMobileBack(viewCompleted, () => setViewCompleted(false));
+  useMobileBack(historyClientId !== null, () => setHistoryClientId(null));
 
   const loadData = async () => {
     try {

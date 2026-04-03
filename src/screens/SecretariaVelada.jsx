@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatPeruDate } from '../utils/dateFormatter';
 import { fetchVelaTickets, createVelaTicket, fetchAllClients, deleteTicket, upsertClient, fetchClientHistory, subscribeToTickets } from '../services/api';
+import { useMobileBack } from '../hooks/useMobileBack';
 
 function SecretariaVelada({ onBack }) {
   const [view, setView] = useState('list'); // 'list', 'new-ticket', 'new-vela'
@@ -9,6 +10,9 @@ function SecretariaVelada({ onBack }) {
   const [historyClientId, setHistoryClientId] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  
+  useMobileBack(view !== 'list', () => setView('list'));
+  useMobileBack(historyClientId !== null, () => setHistoryClientId(null));
   
   const loadData = async () => {
     try {

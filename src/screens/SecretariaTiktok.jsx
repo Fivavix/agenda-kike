@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatPeruDate } from '../utils/dateFormatter';
 import { fetchTiktokTickets, createTiktokTicket, fetchAllClients, deleteTicket, upsertClient, fetchClientHistory, subscribeToTickets } from '../services/api';
+import { useMobileBack } from '../hooks/useMobileBack';
 
 const TIKTOK_QUESTIONS = [
   'Pregunta corta',
@@ -16,6 +17,9 @@ function SecretariaTiktok({ onBack }) {
   const [historyClientId, setHistoryClientId] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  
+  useMobileBack(view !== 'list', () => setView('list'));
+  useMobileBack(historyClientId !== null, () => setHistoryClientId(null));
   
   const loadData = async () => {
     try {

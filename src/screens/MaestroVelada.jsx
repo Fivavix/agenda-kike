@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatPeruDate, getLast7DaysPeru, getPeruDateString } from '../utils/dateFormatter';
 import { fetchVelaTickets, toggleVelaStatus, completeTicketStatus, fetchClientHistory, subscribeToTickets } from '../services/api';
+import { useMobileBack } from '../hooks/useMobileBack';
 
 function MaestroVelada({ onBack }) {
   const [viewCompleted, setViewCompleted] = useState(false);
@@ -9,6 +10,9 @@ function MaestroVelada({ onBack }) {
   const [historyClientId, setHistoryClientId] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useMobileBack(viewCompleted, () => setViewCompleted(false));
+  useMobileBack(historyClientId !== null, () => setHistoryClientId(null));
 
   const loadData = async () => {
     try {

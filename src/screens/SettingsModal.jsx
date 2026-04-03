@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useMobileBack } from '../hooks/useMobileBack';
 
 export default function SettingsModal({ onClose }) {
+  useMobileBack(true, onClose);
+  
   const [activeTab, setActiveTab] = useState('password'); // 'password' or 'email'
   
   const [password, setPassword] = useState('');

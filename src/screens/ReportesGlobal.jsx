@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { formatPeruDate, getPeruDateString } from '../utils/dateFormatter';
 import { fetchAllTickets } from '../services/reportes';
 import { subscribeToTickets } from '../services/api';
+import { useMobileBack } from '../hooks/useMobileBack';
 
 function ReportesGlobal({ onBack }) {
   const [allTickets, setAllTickets] = useState([]);
@@ -74,6 +75,9 @@ function ReportesGlobal({ onBack }) {
   // Historial Search
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
+
+  useMobileBack(activeTab === 'historial', () => setActiveTab('reportes'));
+  useMobileBack(selectedClient !== null, () => setSelectedClient(null));
 
   // Derivations para Reportes
   const filteredTickets = useMemo(() => {

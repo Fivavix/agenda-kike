@@ -4,12 +4,15 @@ import MaestroVelada from './MaestroVelada';
 import MaestroTiktok from './MaestroTiktok';
 import ReportesGlobal from './ReportesGlobal';
 import SettingsModal from './SettingsModal';
+import { useMobileBack } from '../hooks/useMobileBack';
 
 function MaestroDashboard({ onLogout }) {
   const [activeView, setActiveView] = useState('home');
   const [showSettings, setShowSettings] = useState(false);
 
   const [stats, setStats] = useState({ pendings: 0, completed: 0, velada: 0, tiktok: 0 });
+
+  useMobileBack(activeView !== 'home', () => setActiveView('home'));
 
   useEffect(() => {
     if (activeView === 'home') {

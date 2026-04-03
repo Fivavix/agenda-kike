@@ -4,11 +4,14 @@ import SecretariaVelada from './SecretariaVelada';
 import SecretariaTiktok from './SecretariaTiktok';
 import ReportesGlobal from './ReportesGlobal';
 import SettingsModal from './SettingsModal';
+import { useMobileBack } from '../hooks/useMobileBack';
 
 function SecretariaDashboard({ onLogout }) {
   const [activeView, setActiveView] = useState('home');
   const [showSettings, setShowSettings] = useState(false);
   const [stats, setStats] = useState({ pendings: 0, completed: 0, velada: 0, tiktok: 0 });
+
+  useMobileBack(activeView !== 'home', () => setActiveView('home'));
 
   useEffect(() => {
     if (activeView === 'home') {
