@@ -1,18 +1,37 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { formatPeruDate } from '../utils/dateFormatter';
 import { fetchVelaTickets, createVelaTicket, fetchAllClients, deleteTicket, upsertClient, fetchClientHistory, subscribeToTickets } from '../services/api';
-import { useMobileBack } from '../hooks/useMobileBack';
 
-function SecretariaVelada({ onBack }) {
-  const [view, setView] = useState('list'); // 'list', 'new-ticket', 'new-vela'
+function SecretariaVelada() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const basePath = location.pathname.startsWith('/secretaria') ? '/secretaria/velada' : '/maestro/velada';
+  const dashboardPath = location.pathname.startsWith('/secretaria') ? '/secretaria' : '/maestro';
+
+  let view = 'list';
+  if (location.pathname.includes('/nuevo-ticket')) view = 'new-ticket';
+  if (location.pathname.includes('/nueva-vela')) view = 'new-vela';
+
+  const historyMatch = location.pathname.match(/\/historial\/(.+)$/);
+  const historyClientId = historyMatch ? historyMatch[1] : null;
+
   const [tickets, setTickets] = useState([]);
   const [allClients, setAllClients] = useState([]);
-  const [historyClientId, setHistoryClientId] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   
-  useMobileBack(view !== 'list', () => setView('list'));
-  useMobileBack(historyClientId !== null, () => setHistoryClientId(null));
+  const onBack = () => navigate(dashboardPath);
+
+  const openHistory = (id) => navigate(`${location.pathname}/historial/${id}`);
+  const closeHistory = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(location.pathname.replace(/\/historial\/.+$/, ''));
+    }
+  };
   
   const loadData = async () => {
     try {
@@ -55,9 +74,15 @@ function SecretariaVelada({ onBack }) {
 
   // Reset states when changing views
   const handleSetView = (newView) => {
-    if (newView === 'new-ticket') setFormData(initFormData);
-    if (newView === 'new-vela') setAddVelaData(initAddVelaData);
-    setView(newView);
+    if (newView === 'new-ticket') {
+      setFormData(initFormData);
+      navigate(`${basePath}/nuevo-ticket`);
+    } else if (newView === 'new-vela') {
+      setAddVelaData(initAddVelaData);
+      navigate(`${basePath}/nueva-vela`);
+    } else {
+      navigate(basePath);
+    }
   };
 
   const handleDelete = async (ticketId) => {
@@ -398,7 +423,7 @@ function SecretariaVelada({ onBack }) {
                 {ticket.isAdditional && (
                   <div style={{ fontSize: '0.85rem', color: 'var(--gold-accent)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                     <span>{ticket.isBeneficiary ? `Pedido Adicional: ${ticket.titular_name}` : 'Pedido Adicional'}</span>
-                    <button onClick={() => setHistoryClientId(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--gold-accent), #cf9b13)', border: 'none', color: '#111', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(212, 175, 55, 0.3)' }}>
+                    <button onClick={() => openHistory(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--gold-accent), #cf9b13)', border: 'none', color: '#111', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(212, 175, 55, 0.3)' }}>
                       Historial
                     </button>
                   </div>
@@ -446,7 +471,7 @@ function SecretariaVelada({ onBack }) {
           <div style={{ padding: '24px', flex: 1, maxWidth: '600px', margin: '0 auto', width: '100%' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 className="MysticTitle" style={{ fontSize: '1.8rem', margin: 0 }}>Historial del Cliente</h2>
-              <button onClick={() => setHistoryClientId(null)} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
+              <button onClick={closeHistory} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
             </header>
             
             {loadingHistory ? (

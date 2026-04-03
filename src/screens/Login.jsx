@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import fotoLogin from '../assets/foto_login.webp';
 import { supabase } from '../supabaseClient';
-import { useMobileBack } from '../hooks/useMobileBack';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -11,12 +10,6 @@ function Login() {
 
   const [isRecovering, setIsRecovering] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-
-  useMobileBack(isRecovering, () => {
-    setIsRecovering(false);
-    setErrorMsg('');
-    setSuccessMsg('');
-  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();

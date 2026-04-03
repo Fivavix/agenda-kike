@@ -1,32 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { fetchTicketStats, subscribeToTickets } from '../services/api';
 import SecretariaVelada from './SecretariaVelada';
 import SecretariaTiktok from './SecretariaTiktok';
 import ReportesGlobal from './ReportesGlobal';
 import SettingsModal from './SettingsModal';
-import { useMobileBack } from '../hooks/useMobileBack';
 
 function SecretariaDashboard({ onLogout }) {
-  const [activeView, setActiveView] = useState('home');
+  return (
+    <Routes>
+      <Route path="/" element={<SecretariaHome onLogout={onLogout} />} />
+      <Route path="/velada/*" element={<SecretariaVelada />} />
+      <Route path="/tiktok/*" element={<SecretariaTiktok />} />
+      <Route path="/reportes/*" element={<ReportesGlobal />} />
+    </Routes>
+  );
+}
+
+function SecretariaHome({ onLogout }) {
   const [showSettings, setShowSettings] = useState(false);
   const [stats, setStats] = useState({ pendings: 0, completed: 0, velada: 0, tiktok: 0 });
-
-  useMobileBack(activeView !== 'home', () => setActiveView('home'));
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (activeView === 'home') {
-      const loadStats = () => fetchTicketStats().then(setStats);
-      loadStats();
-      const subscription = subscribeToTickets(loadStats);
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
-  }, [activeView]);
-
-  if (activeView === 'velada') return <SecretariaVelada onBack={() => setActiveView('home')} />;
-  if (activeView === 'tiktok') return <SecretariaTiktok onBack={() => setActiveView('home')} />;
-  if (activeView === 'reportes') return <ReportesGlobal onBack={() => setActiveView('home')} />;
+    const loadStats = () => fetchTicketStats().then(setStats);
+    loadStats();
+    const subscription = subscribeToTickets(loadStats);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <div className="animate-fade-in" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -75,7 +78,7 @@ function SecretariaDashboard({ onLogout }) {
             Gestión de Módulos
           </h3>
 
-          <div className="card" onClick={() => setActiveView('velada')} style={{ cursor: 'pointer', padding: '28px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="card" onClick={() => navigate('/secretaria/velada')} style={{ cursor: 'pointer', padding: '28px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h4 className="MysticTitle" style={{ fontSize: '1.6rem', marginBottom: '8px' }}>La Velada</h4>
               <div className="badge badge-gold"><span style={{ marginRight: '6px' }}>✦</span> {stats.velada} pendientes</div>
@@ -83,7 +86,7 @@ function SecretariaDashboard({ onLogout }) {
             <div style={{ fontSize: '1.5rem', color: 'var(--gold-accent)' }}>→</div>
           </div>
 
-          <div className="card" onClick={() => setActiveView('tiktok')} style={{ cursor: 'pointer', padding: '28px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div className="card" onClick={() => navigate('/secretaria/tiktok')} style={{ cursor: 'pointer', padding: '28px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
               <h4 className="MysticTitle" style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Consultas TikTok</h4>
               <div className="badge badge-purple"><span style={{ marginRight: '6px' }}>✦</span> {stats.tiktok} pendientes</div>
@@ -91,7 +94,7 @@ function SecretariaDashboard({ onLogout }) {
             <div style={{ fontSize: '1.5rem', color: 'var(--purple-accent)' }}>→</div>
           </div>
           
-          <div className="card" onClick={() => setActiveView('reportes')} style={{ cursor: 'pointer', padding: '28px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="card" onClick={() => navigate('/secretaria/reportes')} style={{ cursor: 'pointer', padding: '28px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h4 className="MysticTitle" style={{ fontSize: '1.6rem', marginBottom: '8px' }}>Reportes e Historial</h4>
               <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Ingresos, métricas y datos CRM</div>

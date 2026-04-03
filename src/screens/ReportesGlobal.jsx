@@ -1,10 +1,22 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { formatPeruDate, getPeruDateString } from '../utils/dateFormatter';
 import { fetchAllTickets } from '../services/reportes';
 import { subscribeToTickets } from '../services/api';
-import { useMobileBack } from '../hooks/useMobileBack';
 
-function ReportesGlobal({ onBack }) {
+function ReportesGlobal() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const basePath = location.pathname.startsWith('/secretaria') ? '/secretaria/reportes' : '/maestro/reportes';
+  const dashboardPath = location.pathname.startsWith('/secretaria') ? '/secretaria' : '/maestro';
+
+  const onBack = () => navigate(dashboardPath);
+
+  const activeTab = location.pathname.includes('/historial') ? 'historial' : 'reportes';
+  const idMatch = location.pathname.match(/\/historial\/(.+)$/);
+  const selectedClientIdFromUrl = activeTab === 'historial' && idMatch ? idMatch[1] : null;
+
   const [allTickets, setAllTickets] = useState([]);
   
   useEffect(() => {
@@ -18,8 +30,6 @@ function ReportesGlobal({ onBack }) {
       subscription.unsubscribe();
     };
   }, []);
-
-  const [activeTab, setActiveTab] = useState('reportes');
 
   // Paginación
   const [limitTickets, setLimitTickets] = useState(20);
@@ -74,10 +84,22 @@ function ReportesGlobal({ onBack }) {
 
   // Historial Search
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedClient, setSelectedClient] = useState(null);
 
-  useMobileBack(activeTab === 'historial', () => setActiveTab('reportes'));
-  useMobileBack(selectedClient !== null, () => setSelectedClient(null));
+  // Derived selectedClient from URL params
+  const selectedClient = useMemo(() => {
+    if (!selectedClientIdFromUrl) return null;
+    
+    // Group allTickets specifically for this client ID
+    const decodedId = decodeURIComponent(selectedClientIdFromUrl);
+    const ticketsForClient = allTickets.filter(t => t.client_id === decodedId || (t.titular_name || t.name) === decodedId);
+    
+    if (ticketsForClient.length > 0) {
+      const first = ticketsForClient[0];
+      const titularName = first.titular_name || first.name;
+      return { client_id: first.client_id, name: titularName, phone: first.phone, tickets: ticketsForClient };
+    }
+    return null;
+  }, [selectedClientIdFromUrl, allTickets]);
 
   // Derivations para Reportes
   const filteredTickets = useMemo(() => {
@@ -329,7 +351,7 @@ function ReportesGlobal({ onBack }) {
               <h2 className="MysticTitle" style={{ fontSize: '1.6rem', margin: 0 }}>{selectedClient.name}</h2>
               <p style={{ color: 'var(--gold-accent)', fontSize: '0.9rem', marginTop: '4px', letterSpacing: '0.05em' }}>📞 {selectedClient.phone}</p>
             </div>
-            <button onClick={() => setSelectedClient(null)} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}>✕</button>
+            <button onClick={() => navigate(`${basePath}/historial`)} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}>✕</button>
           </div>
         </div>
 
@@ -402,7 +424,7 @@ function ReportesGlobal({ onBack }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Resultados ({clientResults.length})</h3>
                 {clientResults.map((client, idx) => (
-                  <div key={idx} onClick={() => setSelectedClient(client)} className="card" style={{ padding: '20px', cursor: 'pointer', marginBottom: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={idx} onClick={() => navigate(`${basePath}/historial/${encodeURIComponent(client.client_id || client.name)}`)} className="card" style={{ padding: '20px', cursor: 'pointer', marginBottom: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 className="MysticTitle" style={{ fontSize: '1.2rem', marginBottom: '6px' }}>{client.name}</h4>
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>📞 {client.phone} • {client.tickets.length} tickets registrados</div>
@@ -439,13 +461,13 @@ function ReportesGlobal({ onBack }) {
       <div style={{ padding: '0 24px 12px', zIndex: 10 }}>
         <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-xl)', padding: '6px', position: 'relative' }}>
           <button
-            onClick={() => { setActiveTab('reportes'); setSelectedClient(null); }}
+            onClick={() => navigate(basePath)}
             style={{ flex: 1, padding: '12px 0', border: 'none', background: activeTab === 'reportes' ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.9), rgba(180, 148, 42, 0.9))' : 'transparent', color: activeTab === 'reportes' ? '#020617' : 'var(--text-muted)', borderRadius: '24px', fontWeight: '600', transition: 'all 0.3s ease', cursor: 'pointer' }}
           >
             Reportes
           </button>
           <button
-            onClick={() => setActiveTab('historial')}
+            onClick={() => navigate(`${basePath}/historial`)}
             style={{ flex: 1, padding: '12px 0', border: 'none', background: activeTab === 'historial' ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.9), rgba(180, 148, 42, 0.9))' : 'transparent', color: activeTab === 'historial' ? '#020617' : 'var(--text-muted)', borderRadius: '24px', fontWeight: '600', transition: 'all 0.3s ease', cursor: 'pointer' }}
           >
             Historial de Cliente

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './screens/Login'
 import MaestroDashboard from './screens/MaestroDashboard'
 import SecretariaDashboard from './screens/SecretariaDashboard'
@@ -144,9 +145,18 @@ function App() {
   return (
     <div className="app-container">
       <AppUpdater />
-      {!user && <Login />}
-      {user === 'maestro' && <MaestroDashboard onLogout={handleLogout} />}
-      {user === 'secretaria' && <SecretariaDashboard onLogout={handleLogout} />}
+      <Routes>
+        {!user ? (
+          <Route path="*" element={<Login />} />
+        ) : (
+          <>
+            <Route path="/" element={<Navigate to={`/${user}`} replace />} />
+            {user === 'maestro' && <Route path="/maestro/*" element={<MaestroDashboard onLogout={handleLogout} />} />}
+            {user === 'secretaria' && <Route path="/secretaria/*" element={<SecretariaDashboard onLogout={handleLogout} />} />}
+            <Route path="*" element={<Navigate to={`/${user}`} replace />} />
+          </>
+        )}
+      </Routes>
     </div>
   )
 }

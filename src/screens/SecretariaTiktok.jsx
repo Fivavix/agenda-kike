@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { formatPeruDate } from '../utils/dateFormatter';
 import { fetchTiktokTickets, createTiktokTicket, fetchAllClients, deleteTicket, upsertClient, fetchClientHistory, subscribeToTickets } from '../services/api';
-import { useMobileBack } from '../hooks/useMobileBack';
 
 const TIKTOK_QUESTIONS = [
   'Pregunta corta',
@@ -10,16 +10,35 @@ const TIKTOK_QUESTIONS = [
   'Canalización'
 ];
 
-function SecretariaTiktok({ onBack }) {
-  const [view, setView] = useState('list');
+function SecretariaTiktok() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const basePath = location.pathname.startsWith('/secretaria') ? '/secretaria/tiktok' : '/maestro/tiktok';
+  const dashboardPath = location.pathname.startsWith('/secretaria') ? '/secretaria' : '/maestro';
+
+  let view = 'list';
+  if (location.pathname.includes('/nueva-pregunta')) view = 'new-ticket';
+  if (location.pathname.includes('/agregar-rapido')) view = 'add-fast';
+
+  const historyMatch = location.pathname.match(/\/historial\/(.+)$/);
+  const historyClientId = historyMatch ? historyMatch[1] : null;
+
   const [tickets, setTickets] = useState([]);
   const [allClients, setAllClients] = useState([]);
-  const [historyClientId, setHistoryClientId] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   
-  useMobileBack(view !== 'list', () => setView('list'));
-  useMobileBack(historyClientId !== null, () => setHistoryClientId(null));
+  const onBack = () => navigate(dashboardPath);
+
+  const openHistory = (id) => navigate(`${location.pathname}/historial/${id}`);
+  const closeHistory = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(location.pathname.replace(/\/historial\/.+$/, ''));
+    }
+  };
   
   const loadData = async () => {
     try {
@@ -61,9 +80,15 @@ function SecretariaTiktok({ onBack }) {
   }, [historyClientId]);
 
   const handleSetView = (newView) => {
-    if (newView === 'new-ticket') setNewFormData(initNewFormData);
-    if (newView === 'add-fast') setFastAddData(initFastAddData);
-    setView(newView);
+    if (newView === 'new-ticket') {
+      setNewFormData(initNewFormData);
+      navigate(`${basePath}/nueva-pregunta`);
+    } else if (newView === 'add-fast') {
+      setFastAddData(initFastAddData);
+      navigate(`${basePath}/agregar-rapido`);
+    } else {
+      navigate(basePath);
+    }
   };
 
   const handleDelete = async (ticketId) => {
@@ -378,7 +403,7 @@ function SecretariaTiktok({ onBack }) {
                 {ticket.isAdditional && (
                   <div style={{ fontSize: '0.85rem', color: 'var(--purple-accent)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                     <span>{ticket.isBeneficiary ? `Pedido Adicional: ${ticket.titular_name}` : 'Pedido Adicional'}</span>
-                    <button onClick={() => setHistoryClientId(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--purple-accent), #7c3aed)', border: 'none', color: '#FFF', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(167, 139, 250, 0.3)' }}>
+                    <button onClick={() => openHistory(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--purple-accent), #7c3aed)', border: 'none', color: '#FFF', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(167, 139, 250, 0.3)' }}>
                       Historial
                     </button>
                   </div>
@@ -422,7 +447,7 @@ function SecretariaTiktok({ onBack }) {
           <div style={{ padding: '24px', flex: 1, maxWidth: '600px', margin: '0 auto', width: '100%' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 className="MysticTitle" style={{ fontSize: '1.8rem', margin: 0 }}>Historial del Cliente</h2>
-              <button onClick={() => setHistoryClientId(null)} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
+              <button onClick={closeHistory} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
             </header>
             
             {loadingHistory ? (

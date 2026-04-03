@@ -1,41 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { fetchTicketStats, subscribeToTickets } from '../services/api';
 import MaestroVelada from './MaestroVelada';
 import MaestroTiktok from './MaestroTiktok';
 import ReportesGlobal from './ReportesGlobal';
 import SettingsModal from './SettingsModal';
-import { useMobileBack } from '../hooks/useMobileBack';
 
 function MaestroDashboard({ onLogout }) {
-  const [activeView, setActiveView] = useState('home');
+  return (
+    <Routes>
+      <Route path="/" element={<MaestroHome onLogout={onLogout} />} />
+      <Route path="/velada/*" element={<MaestroVelada />} />
+      <Route path="/tiktok/*" element={<MaestroTiktok />} />
+      <Route path="/reportes/*" element={<ReportesGlobal />} />
+    </Routes>
+  );
+}
+
+function MaestroHome({ onLogout }) {
   const [showSettings, setShowSettings] = useState(false);
-
   const [stats, setStats] = useState({ pendings: 0, completed: 0, velada: 0, tiktok: 0 });
-
-  useMobileBack(activeView !== 'home', () => setActiveView('home'));
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (activeView === 'home') {
-      const loadStats = () => fetchTicketStats().then(setStats);
-      loadStats();
-      const subscription = subscribeToTickets(loadStats);
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
-  }, [activeView]);
-
-  if (activeView === 'velada') {
-    return <MaestroVelada onBack={() => setActiveView('home')} />;
-  }
-
-  if (activeView === 'tiktok') {
-    return <MaestroTiktok onBack={() => setActiveView('home')} />;
-  }
-
-  if (activeView === 'reportes') {
-    return <ReportesGlobal onBack={() => setActiveView('home')} />;
-  }
+    const loadStats = () => fetchTicketStats().then(setStats);
+    loadStats();
+    const subscription = subscribeToTickets(loadStats);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <div className="animate-fade-in" style={{ 
@@ -146,7 +140,7 @@ function MaestroDashboard({ onLogout }) {
           </h3>
         
         {/* Velada Card */}
-        <div onClick={() => setActiveView('velada')} style={{ 
+        <div onClick={() => navigate('/maestro/velada')} style={{ 
           cursor: 'pointer', 
           padding: '28px', 
           borderRadius: '24px',
@@ -193,7 +187,7 @@ function MaestroDashboard({ onLogout }) {
         </div>
 
         {/* TikTok Card */}
-        <div onClick={() => setActiveView('tiktok')} style={{ 
+        <div onClick={() => navigate('/maestro/tiktok')} style={{ 
           cursor: 'pointer', 
           padding: '28px', 
           borderRadius: '24px',
@@ -240,7 +234,7 @@ function MaestroDashboard({ onLogout }) {
         </div>
 
         {/* Reportes Card */}
-        <div onClick={() => setActiveView('reportes')} style={{ 
+        <div onClick={() => navigate('/maestro/reportes')} style={{ 
           cursor: 'pointer', 
           padding: '28px', 
           borderRadius: '24px',

@@ -1,18 +1,43 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { formatPeruDate, getLast7DaysPeru, getPeruDateString } from '../utils/dateFormatter';
 import { fetchTiktokTickets, completeTicketStatus, fetchClientHistory, subscribeToTickets } from '../services/api';
-import { useMobileBack } from '../hooks/useMobileBack';
 
-function MaestroTiktok({ onBack }) {
-  const [viewCompleted, setViewCompleted] = useState(false);
+function MaestroTiktok() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const viewCompleted = location.pathname.includes('/completados');
+  const historyMatch = location.pathname.match(/\/historial\/(.+)$/);
+  const historyClientId = historyMatch ? historyMatch[1] : null;
+
   const [tickets, setTickets] = useState([]);
   const [completedTickets, setCompletedTickets] = useState([]);
-  const [historyClientId, setHistoryClientId] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  useMobileBack(viewCompleted, () => setViewCompleted(false));
-  useMobileBack(historyClientId !== null, () => setHistoryClientId(null));
+  const basePath = location.pathname.startsWith('/secretaria') ? '/secretaria/tiktok' : '/maestro/tiktok';
+  const dashboardPath = location.pathname.startsWith('/secretaria') ? '/secretaria' : '/maestro';
+
+  const onBack = () => navigate(dashboardPath);
+
+  const toggleViewCompleted = () => {
+    if (viewCompleted) {
+      navigate(basePath);
+    } else {
+      navigate(`${basePath}/completados`);
+    }
+  };
+
+  const openHistory = (id) => navigate(`${location.pathname}/historial/${id}`);
+  
+  const closeHistory = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(location.pathname.replace(/\/historial\/.+$/, ''));
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -72,7 +97,7 @@ function MaestroTiktok({ onBack }) {
         </div>
         <button 
           className="btn-outline"
-          onClick={() => setViewCompleted(!viewCompleted)} 
+          onClick={toggleViewCompleted} 
           style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem', borderColor: 'var(--purple-light)', color: 'var(--purple-accent)', background: 'rgba(167, 139, 250, 0.05)' }}
         >
           {viewCompleted ? 'Volver a Pendientes' : 'Ver Completados'}
@@ -138,7 +163,7 @@ function MaestroTiktok({ onBack }) {
                   {ticket.isAdditional && (
                     <div style={{ fontSize: '0.85rem', color: 'var(--purple-accent)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                       <span>{ticket.isBeneficiary ? `Pedido Adicional: ${ticket.titular_name}` : 'Pedido Adicional'}</span>
-                      <button onClick={() => setHistoryClientId(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--purple-accent), #7c3aed)', border: 'none', color: '#FFF', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(167, 139, 250, 0.3)' }}>
+                      <button onClick={() => openHistory(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--purple-accent), #7c3aed)', border: 'none', color: '#FFF', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(167, 139, 250, 0.3)' }}>
                         Historial
                       </button>
                     </div>
@@ -188,7 +213,7 @@ function MaestroTiktok({ onBack }) {
           <div style={{ padding: '24px', flex: 1, maxWidth: '600px', margin: '0 auto', width: '100%' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 className="MysticTitle" style={{ fontSize: '1.8rem', margin: 0 }}>Historial del Cliente</h2>
-              <button onClick={() => setHistoryClientId(null)} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
+              <button onClick={closeHistory} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
             </header>
             
             {loadingHistory ? (

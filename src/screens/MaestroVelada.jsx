@@ -1,18 +1,44 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { formatPeruDate, getLast7DaysPeru, getPeruDateString } from '../utils/dateFormatter';
 import { fetchVelaTickets, toggleVelaStatus, completeTicketStatus, fetchClientHistory, subscribeToTickets } from '../services/api';
-import { useMobileBack } from '../hooks/useMobileBack';
 
-function MaestroVelada({ onBack }) {
-  const [viewCompleted, setViewCompleted] = useState(false);
+function MaestroVelada() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const viewCompleted = location.pathname.includes('/completados');
+  const historyMatch = location.pathname.match(/\/historial\/(.+)$/);
+  const historyClientId = historyMatch ? historyMatch[1] : null;
+
   const [tickets, setTickets] = useState([]);
   const [completedTickets, setCompletedTickets] = useState([]);
-  const [historyClientId, setHistoryClientId] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  useMobileBack(viewCompleted, () => setViewCompleted(false));
-  useMobileBack(historyClientId !== null, () => setHistoryClientId(null));
+  const basePath = location.pathname.startsWith('/secretaria') ? '/secretaria/velada' : '/maestro/velada';
+  const dashboardPath = location.pathname.startsWith('/secretaria') ? '/secretaria' : '/maestro';
+
+  const onBack = () => navigate(dashboardPath);
+  
+  const toggleViewCompleted = () => {
+    if (viewCompleted) {
+      navigate(basePath);
+    } else {
+      navigate(`${basePath}/completados`);
+    }
+  };
+
+  const openHistory = (id) => navigate(`${location.pathname}/historial/${id}`);
+  
+  // We can use navigate(-1) so physical back button is equivalent
+  const closeHistory = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(location.pathname.replace(/\/historial\/.+$/, ''));
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -58,7 +84,6 @@ function MaestroVelada({ onBack }) {
     const newStatus = !isCompleted;
     await toggleVelaStatus(velaId, newStatus);
     
-    // Check local state optimistically
     const ticket = tickets.find(t => t.id === ticketId);
     if (ticket) {
       const allDone = ticket.velas.every(v => v.id === velaId ? newStatus : v.is_completed);
@@ -79,7 +104,7 @@ function MaestroVelada({ onBack }) {
           <button className="btn-secondary" onClick={onBack} style={{ padding: '8px', fontSize: '1.2rem', color: 'var(--text-main)' }}>←</button>
           <h2 className="MysticTitle" style={{ marginBottom: 0, fontSize: '1.8rem' }}>La Velada</h2>
         </div>
-        <button className="btn-outline" onClick={() => setViewCompleted(!viewCompleted)} style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem' }}>
+        <button className="btn-outline" onClick={toggleViewCompleted} style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem' }}>
           {viewCompleted ? 'Volver a Pendientes' : 'Ver Completados'}
         </button>
       </header>
@@ -144,7 +169,7 @@ function MaestroVelada({ onBack }) {
                   {ticket.isAdditional && (
                     <div style={{ fontSize: '0.85rem', color: 'var(--gold-accent)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                       <span>{ticket.isBeneficiary ? `Pedido Adicional: ${ticket.titular_name}` : 'Pedido Adicional'}</span>
-                      <button onClick={() => setHistoryClientId(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--gold-accent), #cf9b13)', border: 'none', color: '#111', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(212, 175, 55, 0.3)' }}>
+                      <button onClick={() => openHistory(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--gold-accent), #cf9b13)', border: 'none', color: '#111', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(212, 175, 55, 0.3)' }}>
                         Historial
                       </button>
                     </div>
@@ -206,7 +231,7 @@ function MaestroVelada({ onBack }) {
           <div style={{ padding: '24px', flex: 1, maxWidth: '600px', margin: '0 auto', width: '100%' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 className="MysticTitle" style={{ fontSize: '1.8rem', margin: 0 }}>Historial del Cliente</h2>
-              <button onClick={() => setHistoryClientId(null)} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
+              <button onClick={closeHistory} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
             </header>
             
             {loadingHistory ? (
