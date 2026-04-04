@@ -397,8 +397,14 @@ function SecretariaTiktok() {
                 {ticket.isAdditional && (
                   <div style={{ fontSize: '0.85rem', color: 'var(--purple-accent)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                     <span>{ticket.isBeneficiary ? `Pedido Adicional: ${ticket.titular_name}` : 'Pedido Adicional'}</span>
-                    <button onClick={() => openHistory(ticket.client_id)} style={{ background: 'linear-gradient(135deg, var(--purple-accent), #7c3aed)', border: 'none', color: '#FFF', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(167, 139, 250, 0.3)' }}>
-                      Historial
+                    <button onClick={() => {
+                        if (historyClientId === ticket.client_id) {
+                          closeHistory();
+                        } else {
+                          openHistory(ticket.client_id);
+                        }
+                      }} style={{ background: 'linear-gradient(135deg, var(--purple-accent), #7c3aed)', border: 'none', color: '#FFF', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(167, 139, 250, 0.3)' }}>
+                      {historyClientId === ticket.client_id ? 'Cerrar Historial' : 'Historial'}
                     </button>
                   </div>
                 )}
@@ -412,6 +418,20 @@ function SecretariaTiktok() {
                 >
                   <span style={{ marginRight: '6px' }}>📞</span> {ticket.phone}
                 </a>
+
+                {!ticket.isAdditional && (
+                  <div style={{ marginTop: '10px' }}>
+                    <button onClick={() => {
+                        if (historyClientId === ticket.client_id) {
+                          closeHistory();
+                        } else {
+                          openHistory(ticket.client_id);
+                        }
+                      }} style={{ background: 'linear-gradient(135deg, var(--purple-accent), #7c3aed)', border: 'none', color: '#FFF', fontWeight: 'bold', borderRadius: '12px', padding: '4px 12px', fontSize: '0.75rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em', boxShadow: '0 2px 8px rgba(167, 139, 250, 0.3)' }}>
+                      {historyClientId === ticket.client_id ? 'Cerrar Historial' : 'Ver Historial'}
+                    </button>
+                  </div>
+                )}
               </div>
               <div style={{ flexShrink: 0, textAlign: 'right', marginTop: '8px' }}>
                 <div className="badge badge-purple" style={{ marginBottom: '8px', display: 'inline-block' }}>
@@ -432,47 +452,34 @@ function SecretariaTiktok() {
               <span style={{ color: 'var(--purple-accent)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '4px', fontWeight: '600' }}>Notas al maestro / Petitorio:</span>
               {ticket.notes || 'Ninguna'}
             </div>
-          </div>
-        ))}
-      </div>
 
-      {historyClientId && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', flexDirection: 'column', color: 'white', overflowY: 'auto' }}>
-          <div style={{ padding: '24px', flex: 1, maxWidth: '600px', margin: '0 auto', width: '100%' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 className="MysticTitle" style={{ fontSize: '1.8rem', margin: 0 }}>Historial del Cliente</h2>
-              <button onClick={closeHistory} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
-            </header>
-            
-            {loadingHistory ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}><div className="loader" style={{ display: 'inline-block' }}></div></div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {historyData.map(t => (
-                  <div key={t.id} style={{ background: '#1a1a1a', border: '1px solid var(--border-light)', borderRadius: '12px', padding: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t.date}</span>
-                      <span style={{ fontSize: '0.85rem', color: t.status === 'Completado' ? 'var(--success)' : 'var(--purple-accent)', textTransform: 'uppercase', fontWeight: '600' }}>{t.status}</span>
-                    </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-main)' }}>
-                      {t.name}
-                      {t.isBeneficiary && <span style={{ marginLeft: '8px', fontSize: '0.85rem', color: 'var(--purple-accent)', fontWeight: 'normal', fontStyle: 'italic' }}>(Beneficiario)</span>}
-                    </div>
-                    <div className="badge badge-purple" style={{ display: 'inline-block', marginBottom: '8px' }}>{t.module}</div>
-                    {t.velas && t.velas.length > 0 && (
-                      <div style={{ marginTop: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Velas: {t.velas.map(v => v.name).join(', ')}</div>
-                    )}
-                    {t.type && (
-                      <div style={{ marginTop: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Pregunta: {t.type}</div>
-                    )}
+            {historyClientId === ticket.client_id && (
+              <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-light)' }}>
+                <h4 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--purple-accent)' }}>Historial del Cliente</h4>
+                {loadingHistory ? (
+                  <div style={{ textAlign: 'center', padding: '20px' }}><div className="loader" style={{ display: 'inline-block' }}></div></div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {historyData.map(t => (
+                      <div key={t.id} style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', padding: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t.date}</span>
+                          <span style={{ fontSize: '0.8rem', color: t.status === 'Completado' ? 'var(--success)' : 'var(--purple-accent)', textTransform: 'uppercase', fontWeight: '600' }}>{t.status}</span>
+                        </div>
+                        <div style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '4px', color: 'var(--text-main)' }}>
+                          {t.name}
+                        </div>
+                        <div className="badge badge-purple" style={{ display: 'inline-block', marginBottom: '4px', fontSize: '0.75rem', padding: '2px 8px' }}>{t.module}</div>
+                      </div>
+                    ))}
+                    {historyData.length === 0 && <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No hay tickets para este cliente.</div>}
                   </div>
-                ))}
-                {historyData.length === 0 && <div style={{ color: 'var(--text-muted)' }}>No hay tickets para este cliente.</div>}
+                )}
               </div>
             )}
           </div>
-        </div>
-      )}
+        ))}
+      </div>
 
     </div>
   );

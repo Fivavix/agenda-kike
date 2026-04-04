@@ -39,17 +39,17 @@ const dErr = (...args) => { if (DEBUG_MODE) console.error('[API ERROR]', ...args
 export const fetchTicketStats = async () => {
   const { data, error } = await supabase.from('tickets').select('status, module, completed_at, created_at');
   if (error) return { pendings: 0, completed: 0, velada: 0, tiktok: 0 };
-  
+
   let pendings = 0;
   let completed = 0;
   let velada = 0;
   let tiktok = 0;
-  
+
   const last7Days = getLast7DaysPeru();
   for (const t of data) {
     const stat = (t.status || '').toLowerCase();
     const mod = (t.module || '').toLowerCase();
-    
+
     if (stat === 'pendiente') {
       pendings++;
       if (mod === 'velada') velada++;
@@ -58,7 +58,7 @@ export const fetchTicketStats = async () => {
       completed++;
     }
   }
-  
+
   return { pendings, completed, velada, tiktok };
 };
 
@@ -84,7 +84,7 @@ export const upsertClient = async (name, phone) => {
     .insert({ full_name: name, phone: cleanPhone })
     .select('id')
     .single();
-    
+
   if (clientInsertErr) {
     dErr('Client Insert Error', clientInsertErr);
     throw new Error('Error inserting client: ' + clientInsertErr.message);
@@ -104,16 +104,16 @@ export const fetchClientHistory = async (clientId) => {
     .select('id, display_name, module, amount, payment_method, status, created_at, notes, ticket_velas(vela_name, is_completed), ticket_tiktok(question_type), clients(full_name)')
     .eq('client_id', clientId)
     .order('created_at', { ascending: false });
-    
+
   if (error) return [];
-  
+
   return data.map(t => {
     const isBeneficiary = t.display_name && t.clients?.full_name && (t.display_name.trim().toLowerCase() !== t.clients.full_name.trim().toLowerCase());
     // Explicit mappings to avoid any reference errors with adapter
     const vMod = (t.module === 'velada' || t.module === 'La Velada') ? 'La Velada' : 'Consultas TikTok';
     const vStat = (t.status === 'pendiente' || t.status === 'Pendiente') ? 'Pendiente' : 'Completado';
     const vMeth = t.payment_method === 'yape_plin' ? 'Yape / Plin' : t.payment_method === 'transferencia' ? 'Transferencia' : t.payment_method === 'paypal' ? 'PayPal' : t.payment_method === 'western_union' ? 'Western Union' : t.payment_method === 'objetivo' ? 'Objetivo' : t.payment_method;
-    
+
     return {
       id: t.id,
       name: t.display_name,
@@ -126,7 +126,7 @@ export const fetchClientHistory = async (clientId) => {
       created_at: t.created_at,
       date: t.created_at ? getPeruDateString(new Date(t.created_at)) : '',
       notes: t.notes,
-      velas: t.ticket_velas ? t.ticket_velas.map(v => ({...v, name: v.vela_name})) : [],
+      velas: t.ticket_velas ? t.ticket_velas.map(v => ({ ...v, name: v.vela_name })) : [],
       type: t.ticket_tiktok?.[0]?.question_type || ''
     };
   });
@@ -147,12 +147,12 @@ export const fetchVelaTickets = async () => {
     .select('*, clients(id, full_name, phone, tickets(count)), ticket_velas(*)')
     .eq('module', 'velada')
     .order('created_at', { ascending: false });
-  
+
   if (error) {
     dErr('Fetch Vela Error', error);
     throw error;
   }
-  
+
   dLog(`Fetched ${data.length} vela tickets`);
   return data.map(ticketToUI);
 };
@@ -216,9 +216,9 @@ export const completeTicketStatus = async (ticketId) => {
   dLog(`Completing ticket ${ticketId}`);
   await supabase
     .from('tickets')
-    .update({ 
-      status: statusToDB('Completado'), 
-      completed_at: new Date().toISOString() 
+    .update({
+      status: statusToDB('Completado'),
+      completed_at: new Date().toISOString()
     })
     .eq('id', ticketId);
 };
@@ -231,12 +231,12 @@ export const fetchTiktokTickets = async () => {
     .select('*, clients(id, full_name, phone, tickets(count)), ticket_tiktok(*)')
     .eq('module', 'tiktok')
     .order('created_at', { ascending: false });
-  
+
   if (error) {
     dErr('Fetch TikTok Error', error);
     throw error;
   }
-  
+
   dLog(`Fetched ${data.length} tiktok tickets`);
   return data.map(ticketToUI);
 };
