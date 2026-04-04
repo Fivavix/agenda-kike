@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { formatPeruDate } from '../utils/dateFormatter';
 import { fetchVelaTickets, createVelaTicket, fetchAllClients, deleteTicket, upsertClient, fetchClientHistory, subscribeToTickets } from '../services/api';
 
@@ -9,10 +9,6 @@ function SecretariaVelada() {
 
   const basePath = location.pathname.startsWith('/secretaria') ? '/secretaria/velada' : '/maestro/velada';
   const dashboardPath = location.pathname.startsWith('/secretaria') ? '/secretaria' : '/maestro';
-
-  let view = 'list';
-  if (location.pathname.includes('/nuevo-ticket')) view = 'new-ticket';
-  if (location.pathname.includes('/nueva-vela')) view = 'new-vela';
 
   const historyMatch = location.pathname.match(/\/historial\/(.+)$/);
   const historyClientId = historyMatch ? historyMatch[1] : null;
@@ -72,17 +68,19 @@ function SecretariaVelada() {
     }
   }, [historyClientId]);
 
-  // Reset states when changing views
-  const handleSetView = (newView) => {
-    if (newView === 'new-ticket') {
-      setFormData(initFormData);
-      navigate(`${basePath}/nuevo-ticket`);
-    } else if (newView === 'new-vela') {
-      setAddVelaData(initAddVelaData);
-      navigate(`${basePath}/nueva-vela`);
-    } else {
-      navigate(basePath);
-    }
+  // Navigate functions
+  const openNewTicket = () => {
+    setFormData(initFormData);
+    navigate(`${basePath}/nuevo-ticket`);
+  };
+
+  const openNewVela = () => {
+    setAddVelaData(initAddVelaData);
+    navigate(`${basePath}/nueva-vela`);
+  };
+
+  const goToList = () => {
+    navigate(basePath);
   };
 
   const handleDelete = async (ticketId) => {
@@ -121,7 +119,7 @@ function SecretariaVelada() {
         notes: formData.notes,
         velas: validVelas
       });
-      handleSetView('list');
+      goToList();
       loadData();
       fetchAllClients().then(setAllClients);
     } catch (err) {
@@ -158,7 +156,7 @@ function SecretariaVelada() {
         notes: addVelaData.notes,
         velas: validVelas
       });
-      handleSetView('list');
+      goToList();
       loadData();
       fetchAllClients().then(setAllClients);
     } catch (err) {
@@ -180,11 +178,10 @@ function SecretariaVelada() {
       ).slice(0, 5)
     : [];
 
-  if (view === 'new-ticket') {
-    return (
+  const renderNewTicket = () => (
       <div className="animate-fade-in p-6">
         <header style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="btn-secondary" onClick={() => handleSetView('list')} style={{ padding: '8px' }}>←</button>
+          <button className="btn-secondary" onClick={goToList} style={{ padding: '8px' }}>←</button>
           <h2 className="MysticTitle" style={{ fontSize: '1.8rem', marginBottom: 0 }}>Nuevo Ticket</h2>
         </header>
         <form onSubmit={handleCreateTicket} className="card">
@@ -261,13 +258,11 @@ function SecretariaVelada() {
         </form>
       </div>
     );
-  }
 
-  if (view === 'new-vela') {
-    return (
+  const renderNewVela = () => (
       <div className="animate-fade-in p-6">
         <header style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="btn-secondary" onClick={() => handleSetView('list')} style={{ padding: '8px' }}>←</button>
+          <button className="btn-secondary" onClick={goToList} style={{ padding: '8px' }}>←</button>
           <h2 className="MysticTitle" style={{ fontSize: '1.8rem', marginBottom: 0 }}>Añadir Vela a Cliente Titular</h2>
         </header>
 
@@ -386,9 +381,8 @@ function SecretariaVelada() {
         </form>
       </div>
     );
-  }
 
-  return (
+  const renderList = () => (
     <div className="animate-fade-in" style={{ padding: '24px', paddingBottom: '80px' }}>
       <header style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -398,10 +392,10 @@ function SecretariaVelada() {
       </header>
 
       <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
-        <button className="btn" onClick={() => handleSetView('new-ticket')} style={{ fontSize: '0.95rem', padding: '14px', flex: 1, boxShadow: 'none' }}>
+        <button className="btn" onClick={openNewTicket} style={{ fontSize: '0.95rem', padding: '14px', flex: 1, boxShadow: 'none' }}>
           + Cliente Nuevo
         </button>
-        <button className="btn-outline" onClick={() => handleSetView('new-vela')} style={{ width: 'auto', flex: 1, padding: '14px', fontSize: '0.95rem' }}>
+        <button className="btn-outline" onClick={openNewVela} style={{ width: 'auto', flex: 1, padding: '14px', fontSize: '0.95rem' }}>
           + Titular Existente
         </button>
       </div>
@@ -505,6 +499,16 @@ function SecretariaVelada() {
       )}
 
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route index element={renderList()} />
+      <Route path="nuevo-ticket" element={renderNewTicket()} />
+      <Route path="nueva-vela" element={renderNewVela()} />
+      <Route path="historial/:id" element={renderList()} />
+      <Route path="*" element={renderList()} />
+    </Routes>
   );
 }
 

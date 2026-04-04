@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { formatPeruDate, getPeruDateString } from '../utils/dateFormatter';
 import { fetchAllTickets } from '../services/reportes';
 import { subscribeToTickets } from '../services/api';
@@ -13,9 +13,9 @@ function ReportesGlobal() {
 
   const onBack = () => navigate(dashboardPath);
 
-  const activeTab = location.pathname.includes('/historial') ? 'historial' : 'reportes';
+
   const idMatch = location.pathname.match(/\/historial\/(.+)$/);
-  const selectedClientIdFromUrl = activeTab === 'historial' && idMatch ? idMatch[1] : null;
+  const selectedClientIdFromUrl = idMatch ? idMatch[1] : null;
 
   const [allTickets, setAllTickets] = useState([]);
   
@@ -442,7 +442,7 @@ function ReportesGlobal() {
     </div>
   );
 
-  return (
+  const renderContainer = (activeTab) => (
     <div className="animate-fade-in" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
 
       {/* BG Effects */}
@@ -479,6 +479,15 @@ function ReportesGlobal() {
         {activeTab === 'reportes' ? renderReportes() : renderHistorial()}
       </div>
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route index element={renderContainer('reportes')} />
+      <Route path="historial" element={renderContainer('historial')} />
+      <Route path="historial/:id" element={renderContainer('historial')} />
+      <Route path="*" element={renderContainer('reportes')} />
+    </Routes>
   );
 }
 

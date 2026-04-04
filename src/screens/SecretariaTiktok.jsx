@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { formatPeruDate } from '../utils/dateFormatter';
 import { fetchTiktokTickets, createTiktokTicket, fetchAllClients, deleteTicket, upsertClient, fetchClientHistory, subscribeToTickets } from '../services/api';
 
@@ -16,10 +16,6 @@ function SecretariaTiktok() {
 
   const basePath = location.pathname.startsWith('/secretaria') ? '/secretaria/tiktok' : '/maestro/tiktok';
   const dashboardPath = location.pathname.startsWith('/secretaria') ? '/secretaria' : '/maestro';
-
-  let view = 'list';
-  if (location.pathname.includes('/nueva-pregunta')) view = 'new-ticket';
-  if (location.pathname.includes('/agregar-rapido')) view = 'add-fast';
 
   const historyMatch = location.pathname.match(/\/historial\/(.+)$/);
   const historyClientId = historyMatch ? historyMatch[1] : null;
@@ -79,16 +75,18 @@ function SecretariaTiktok() {
     }
   }, [historyClientId]);
 
-  const handleSetView = (newView) => {
-    if (newView === 'new-ticket') {
-      setNewFormData(initNewFormData);
-      navigate(`${basePath}/nueva-pregunta`);
-    } else if (newView === 'add-fast') {
-      setFastAddData(initFastAddData);
-      navigate(`${basePath}/agregar-rapido`);
-    } else {
-      navigate(basePath);
-    }
+  const openNewTicket = () => {
+    setNewFormData(initNewFormData);
+    navigate(`${basePath}/nueva-pregunta`);
+  };
+
+  const openAddFast = () => {
+    setFastAddData(initFastAddData);
+    navigate(`${basePath}/agregar-rapido`);
+  };
+
+  const goToList = () => {
+    navigate(basePath);
   };
 
   const handleDelete = async (ticketId) => {
@@ -126,7 +124,7 @@ function SecretariaTiktok() {
         method: newFormData.method,
         notes: newFormData.notes
       });
-      handleSetView('list');
+      goToList();
       loadData();
       fetchAllClients().then(setAllClients);
     } catch (err) {
@@ -161,7 +159,7 @@ function SecretariaTiktok() {
         method: fastAddData.method,
         notes: fastAddData.notes
       });
-      handleSetView('list');
+      goToList();
       loadData();
       fetchAllClients().then(setAllClients);
     } catch (err) {
@@ -183,11 +181,10 @@ function SecretariaTiktok() {
       ).slice(0, 5)
     : [];
 
-  if (view === 'new-ticket') {
-    return (
+  const renderNewTicket = () => (
       <div className="animate-fade-in p-6">
         <header style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="btn-secondary" onClick={() => handleSetView('list')} style={{ padding: '8px', color: 'var(--text-main)' }}>←</button>
+          <button className="btn-secondary" onClick={goToList} style={{ padding: '8px', color: 'var(--text-main)' }}>←</button>
           <h2 className="MysticTitle" style={{ marginBottom: 0, fontSize: '1.8rem' }}>Nueva Pregunta</h2>
         </header>
 
@@ -255,13 +252,11 @@ function SecretariaTiktok() {
         </form>
       </div>
     );
-  }
 
-  if (view === 'add-fast') {
-    return (
+  const renderAddFast = () => (
       <div className="animate-fade-in p-6">
         <header style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="btn-secondary" onClick={() => handleSetView('list')} style={{ padding: '8px', color: 'var(--text-main)' }}>←</button>
+          <button className="btn-secondary" onClick={goToList} style={{ padding: '8px', color: 'var(--text-main)' }}>←</button>
           <h2 className="MysticTitle" style={{ fontSize: '1.8rem', marginBottom: 0 }}>Agregar a Titular Existente</h2>
         </header>
 
@@ -366,9 +361,8 @@ function SecretariaTiktok() {
         </form>
       </div>
     );
-  }
 
-  return (
+  const renderList = () => (
     <div className="animate-fade-in" style={{ padding: '24px', paddingBottom: '80px' }}>
       <header style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -378,10 +372,10 @@ function SecretariaTiktok() {
       </header>
 
       <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
-        <button className="btn" onClick={() => handleSetView('new-ticket')} style={{ fontSize: '0.95rem', padding: '14px', flex: 1, boxShadow: 'none', background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.9), rgba(124, 58, 237, 0.9))', color: '#FFF' }}>
+        <button className="btn" onClick={openNewTicket} style={{ fontSize: '0.95rem', padding: '14px', flex: 1, boxShadow: 'none', background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.9), rgba(124, 58, 237, 0.9))', color: '#FFF' }}>
           + Cliente Nuevo
         </button>
-        <button className="btn-outline" onClick={() => handleSetView('add-fast')} style={{ width: 'auto', flex: 1, padding: '14px', fontSize: '0.95rem', borderColor: 'var(--purple-accent)', color: 'var(--purple-accent)', background: 'rgba(167, 139, 250, 0.1)' }}>
+        <button className="btn-outline" onClick={openAddFast} style={{ width: 'auto', flex: 1, padding: '14px', fontSize: '0.95rem', borderColor: 'var(--purple-accent)', color: 'var(--purple-accent)', background: 'rgba(167, 139, 250, 0.1)' }}>
           + Titular Existente
         </button>
       </div>
@@ -481,6 +475,16 @@ function SecretariaTiktok() {
       )}
 
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route index element={renderList()} />
+      <Route path="nueva-pregunta" element={renderNewTicket()} />
+      <Route path="agregar-rapido" element={renderAddFast()} />
+      <Route path="historial/:id" element={renderList()} />
+      <Route path="*" element={renderList()} />
+    </Routes>
   );
 }
 

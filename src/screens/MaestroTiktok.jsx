@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import { formatPeruDate, getLast7DaysPeru, getPeruDateString } from '../utils/dateFormatter';
 import { fetchTiktokTickets, completeTicketStatus, fetchClientHistory, subscribeToTickets } from '../services/api';
 
@@ -7,7 +7,7 @@ function MaestroTiktok() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const viewCompleted = location.pathname.includes('/completados');
+
   const historyMatch = location.pathname.match(/\/historial\/(.+)$/);
   const historyClientId = historyMatch ? historyMatch[1] : null;
 
@@ -21,13 +21,6 @@ function MaestroTiktok() {
 
   const onBack = () => navigate(dashboardPath);
 
-  const toggleViewCompleted = () => {
-    if (viewCompleted) {
-      navigate(basePath);
-    } else {
-      navigate(`${basePath}/completados`);
-    }
-  };
 
   const openHistory = (id) => navigate(`${location.pathname}/historial/${id}`);
   
@@ -84,38 +77,42 @@ function MaestroTiktok() {
     loadData();
   };
 
-  const visibleTickets = viewCompleted ? completedTickets : tickets;
+  const renderList = (isCompleted) => {
+    const visibleTickets = isCompleted ? completedTickets : tickets;
 
-  return (
-    <div className="animate-fade-in" style={{ padding: '24px', paddingBottom: '80px' }}>
-      <header style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="btn-secondary" onClick={onBack} style={{ padding: '8px', fontSize: '1.2rem', color: 'var(--text-main)' }}>
-            ←
+    return (
+      <div className="animate-fade-in" style={{ padding: '24px', paddingBottom: '80px' }}>
+        <header style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button className="btn-secondary" onClick={onBack} style={{ padding: '8px', fontSize: '1.2rem', color: 'var(--text-main)' }}>
+              ←
+            </button>
+            <h2 className="MysticTitle" style={{ marginBottom: 0, fontSize: '1.8rem' }}>Consultas TikTok</h2>
+          </div>
+          <button 
+            className="btn-outline"
+            onClick={() => {
+              if (isCompleted) navigate(basePath);
+              else navigate(`${basePath}/completados`);
+            }} 
+            style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem', borderColor: 'var(--purple-light)', color: 'var(--purple-accent)', background: 'rgba(167, 139, 250, 0.05)' }}
+          >
+            {isCompleted ? 'Volver a Pendientes' : 'Ver Completados'}
           </button>
-          <h2 className="MysticTitle" style={{ marginBottom: 0, fontSize: '1.8rem' }}>Consultas TikTok</h2>
-        </div>
-        <button 
-          className="btn-outline"
-          onClick={toggleViewCompleted} 
-          style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem', borderColor: 'var(--purple-light)', color: 'var(--purple-accent)', background: 'rgba(167, 139, 250, 0.05)' }}
-        >
-          {viewCompleted ? 'Volver a Pendientes' : 'Ver Completados'}
-        </button>
-      </header>
+        </header>
 
-      <div>
-        <h3 style={{ fontSize: '1.05rem', marginBottom: '20px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          {viewCompleted ? 'Consultas Completadas' : 'Consultas Pendientes'}
-        </h3>
+        <div>
+          <h3 style={{ fontSize: '1.05rem', marginBottom: '20px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {isCompleted ? 'Consultas Completadas' : 'Consultas Pendientes'}
+          </h3>
         
         {visibleTickets.length === 0 && (
           <div className="card text-center" style={{ padding: '40px 20px' }}>
-            No hay consultas {viewCompleted ? 'completadas' : 'pendientes'}
+            No hay consultas {isCompleted ? 'completadas' : 'pendientes'}
           </div>
         )}
 
-        {viewCompleted ? (
+        {isCompleted ? (
           <div>
             {Object.entries(completedTickets.reduce((acc, t) => {
               const dbDate = new Date(t.completed_at || t.created_at);
@@ -191,7 +188,7 @@ function MaestroTiktok() {
               {ticket.notes}
             </div>
 
-              {!viewCompleted && (
+              {!isCompleted && (
                 <button 
                   onClick={() => completeTicket(ticket.id)}
                   className="btn" 
@@ -247,6 +244,17 @@ function MaestroTiktok() {
       )}
 
     </div>
+    );
+  };
+
+  return (
+    <Routes>
+      <Route index element={renderList(false)} />
+      <Route path="completados" element={renderList(true)} />
+      <Route path="historial/:id" element={renderList(false)} />
+      <Route path="completados/historial/:id" element={renderList(true)} />
+      <Route path="*" element={renderList(false)} />
+    </Routes>
   );
 }
 

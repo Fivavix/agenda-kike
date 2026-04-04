@@ -119,9 +119,8 @@ function App() {
     } finally {
       localStorage.clear();
       sessionStorage.clear();
-      // Redirigir a la URL del proyecto usando la base de Vite de forma absoluta para evitar saltos al dominio raíz
-      const basePath = import.meta.env.BASE_URL || '/agenda-kike/';
-      window.location.href = window.location.origin + (basePath.startsWith('/') ? '' : '/') + basePath;
+      // Supabase's onAuthStateChange listener will detect the logout and update React state.
+      // This will trigger the router to mount Login.jsx. No manual redirect needed here.
     }
   }
 

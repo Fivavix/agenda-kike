@@ -9,10 +9,10 @@ import SettingsModal from './SettingsModal';
 function MaestroDashboard({ onLogout }) {
   return (
     <Routes>
-      <Route path="/" element={<MaestroHome onLogout={onLogout} />} />
-      <Route path="/velada/*" element={<MaestroVelada />} />
-      <Route path="/tiktok/*" element={<MaestroTiktok />} />
-      <Route path="/reportes/*" element={<ReportesGlobal />} />
+      <Route index element={<MaestroHome onLogout={onLogout} />} />
+      <Route path="velada/*" element={<MaestroVelada />} />
+      <Route path="tiktok/*" element={<MaestroTiktok />} />
+      <Route path="reportes/*" element={<ReportesGlobal />} />
     </Routes>
   );
 }

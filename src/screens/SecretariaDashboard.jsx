@@ -9,10 +9,10 @@ import SettingsModal from './SettingsModal';
 function SecretariaDashboard({ onLogout }) {
   return (
     <Routes>
-      <Route path="/" element={<SecretariaHome onLogout={onLogout} />} />
-      <Route path="/velada/*" element={<SecretariaVelada />} />
-      <Route path="/tiktok/*" element={<SecretariaTiktok />} />
-      <Route path="/reportes/*" element={<ReportesGlobal />} />
+      <Route index element={<SecretariaHome onLogout={onLogout} />} />
+      <Route path="velada/*" element={<SecretariaVelada />} />
+      <Route path="tiktok/*" element={<SecretariaTiktok />} />
+      <Route path="reportes/*" element={<ReportesGlobal />} />
     </Routes>
   );
 }
